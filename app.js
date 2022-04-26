@@ -1,18 +1,7 @@
-const express = require('express')
+require('dotenv').config();
 
-const app = express()
+const Server = require('./models/server');
 
-const PORT = 8080
+const server = new Server();
 
-app.use(express.json())
-
-app.get('/',(req,res)=>{
-    res.send('hola')
-})
-
-const server = app.listen(PORT, ()=>{
-    console.log(`Servidor corriendo en el puerto ${PORT}`)
-})
-server.on(Error,(error)=>{
-    console.log(error)
-})
+server.listen();
