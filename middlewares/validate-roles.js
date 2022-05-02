@@ -7,7 +7,7 @@ const adminRole = (req, res = response, next)=>{
        });
     }
     const {role, name} = req.user;
-    if(role !== 'ADMIN_ROLE'){
+    if(role !== '1'){
         return res.status(401).json({
             msg: `the user ${name} is not a administrator`
         });

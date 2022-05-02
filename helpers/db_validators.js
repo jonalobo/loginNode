@@ -1,28 +1,62 @@
-const Role = require('../models/role');
-const User = require('../models/user');
-//verificar si el rol existe
-const isRoleValidate = async(role = '')=>{
-    const rolExist = await Role.findOne({role});
-    if(!rolExist){
-        throw new Error(`The role ${role} does not exist`);
-    }
-}
+const {response } = require('express');
+
+const { usertSelectEmail,usertSelectId } = require("../models/userQuery");
+const { usertSelectRole } = require("../models/roleQuery");
+
 //verificar si el correo existe
-const isEmailValidate = async(email = '')=>{
-    const emailExist = await User.findOne({email});
-    if(emailExist){
-        throw new Error(`The email ${email} already exist`);
-    }
+
+const isEmailValidate = (req, res = response, next)=>{
+    const {email} = req.body;
+    usertSelectEmail(email,(result)=>{
+        console.log(result);
+        if(result){
+            return res.status(401).json({
+                msg: `The email ${email} already exists`
+            });
+        }
+        next();
+    });
 }
-const exitIdForUser = async(id)=>{
-    const idExist = await User.findById(id);
-    if(!idExist){
-        throw new Error(`The id: ${id}does not exist`);
-    }
+const isEmailValidateUpdate = (req, res = response, next)=>{
+    const {email} = req.body;
+    const {id} = req.params;
+    usertSelectEmail(email,(result)=>{
+        if(result && result.per_code != id){
+            return res.status(401).json({
+                msg: `The email ${email} already exists`
+            });
+        }
+        next();
+    });
+};
+
+//verificar si el rol existe
+const isRoleValidate = (req, res = response, next)=>{
+    const {role} = req.body;
+    usertSelectRole(role,(result)=>{
+        if(!result){
+            return res.status(401).json({
+                msg: `The role ${role} does not exist`
+            });
+        }
+        next();
+    });
+}
+const exitIdForUser = (req, res = response, next)=>{
+    const {id} = req.params;
+    usertSelectId(id,(result)=>{
+        if(!result){
+            return res.status(401).json({
+                msg: `The id: ${id} does not exist`
+            });
+        }
+        next();
+    });
 }
 
 module.exports = {
-    isRoleValidate, 
     isEmailValidate,
+    isRoleValidate,
+    isEmailValidateUpdate,
     exitIdForUser
 }

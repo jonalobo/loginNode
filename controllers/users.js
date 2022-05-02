@@ -1,71 +1,68 @@
 const {response, request} = require('express');
 const bcrypt = require('bcryptjs');
-const User = require('../models/user');
-
+const {userInsert,userUpdate,usersSelect,userSelect,userDelete} = require('../models/userQuery');
 
 const usersGet = async(req, res = response) => {
-    const {limit=5,from = 0} = req.query;
-    const query = {status:true};
-
-    const [total, users] = await Promise.all([
-        User.countDocuments(query),
-        User.find(query)
-            .skip(Number(from))
-            .limit(Number(limit)) 
-    ]);
-    res.json({
-        total,
-        users
+    usersSelect((result)=>{
+        const count = result.length;
+        res.json({
+            count,
+            users:result
+        });
     });
 }
-const usersPost = async (req, res = response) => {
+const userGet = async(req, res = response) => {
+    const {id} = req.params;
+    userSelect(id, (result)=>{
+        res.json({
+            user:result
+        });
+    });
+}
+const usersPost = (req, res = response) => {
     
-    const {name, email, password,confirmPassword, role} = req.body;
-    const user = new User({name, email, password,confirmPassword, role});
-
+    const user = req.body;
     //Encryptar la contraseña
     const salt = bcrypt.genSaltSync();
-    user.password = bcrypt.hashSync(password, salt);
-    user.confirmPassword = bcrypt.hashSync(confirmPassword, salt);
+    user.password = bcrypt.hashSync(user.password, salt);
     //Guardar BD
-    await user.save();
-    //enviar respuesta  
-    res.json({
-        user
+    userInsert(user,(result)=>{
+        if(result.affectedRows > 0){
+            res.json('User created successfully');
+        }else{
+            res.json('User not created');
+        }
     });
 }
 const usersPut = async (req, res = response) => {
     const {id} = req.params;
-    const {_id,password, email, ...rest} = req.body;
+    const {password, ...rest} = req.body;
     //validar contra base de datos
 
     if(password){
         const salt = bcrypt.genSaltSync();
         rest.password = bcrypt.hashSync(password, salt);
     }
-    const user = await User.findByIdAndUpdate(id, rest);
-    res.json(user);
+    rest.code=id;
+    userUpdate( rest,(result)=>{
+        if(result.affectedRows > 0){
+            res.json('User updated successfully');
+        }else{
+            res.json('User not created');
+        }
+    });
 }
 const usersDelete = async(req, res = response) => {
     const {id} = req.params;
-
-    //borrado 
-    const user = await User.findByIdAndUpdate(id, {status:false});
-    const userAuthenticated = req.user;
-
-    res.json({
-        user
+    userDelete(id, (result)=>{
+        res.json('User deleted successfully');
     });
 }
-const usersPatch = (req, res = response) => {
-    res.json({
-        msg:'patch API- controllers'
-    });
-}
+
 module.exports={
-    usersGet,
     usersPost,
     usersPut,
-    usersDelete,
-    usersPatch
+    usersGet,
+    userGet,
+    usersDelete
 }
