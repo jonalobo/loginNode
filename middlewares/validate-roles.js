@@ -6,10 +6,10 @@ const adminRole = (req, res = response, next)=>{
            msg: 'Validate role'
        });
     }
-    const {role, name} = req.user;
-    if(role !== '1'){
+    const {per_role, per_name} = req.user;
+    if(per_role !== 1){
         return res.status(401).json({
-            msg: `the user ${name} is not a administrator`
+            msg: `the user ${per_name} is not a administrator`
         });
     }
     next();

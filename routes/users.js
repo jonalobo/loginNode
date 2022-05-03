@@ -1,10 +1,10 @@
 const {Router}= require('express');
 const { check } = require('express-validator');
 
-const {validateFiels,validateJWT,adminRole,haveRole,confirmPassword} = require('../middlewares');
+const {validateFiels,validateJWT,adminRole,haveRole,confirmPassword,isEmailValidateUpdate} = require('../middlewares');
 
 const {usersGet, usersDelete, usersPut, usersPost, userGet} = require('../controllers/users');
-const { isRoleValidate, isEmailValidate, exitIdForUser, isEmailValidateUpdate} = require('../helpers/db_validators');
+const { isRoleValidate, isEmailValidate, exitIdForUser} = require('../helpers/db_validators');
 
 const router = Router();
 
@@ -17,7 +17,7 @@ router.get('/:id',[
 userGet);
 router.put('/:id', [
     check('id', 'It is not a valid ID').isNumeric().notEmpty(),
-    exitIdForUser,
+    check('id').custom(exitIdForUser),
     check('name', 'The name is required').not().isEmpty(),
     check('lastname', 'The name is required').not().isEmpty(),
     check('email', 'The email is not validate').isEmail(),
@@ -26,27 +26,27 @@ router.put('/:id', [
     confirmPassword,
     check('nui', 'The NUI is required').not().isEmpty(),
     check('phone', 'The phone number is not correct').isLength({max:10}),
-    isRoleValidate,
+    check('role').custom(isRoleValidate), 
     validateFiels
 ], usersPut);
 router.post('/',[
     check('name', 'The name is required').not().isEmpty(),
     check('lastname', 'The name is required').not().isEmpty(),
     check('email', 'The email is not validate').isEmail(),
-    isEmailValidate,
+    check('email').custom(isEmailValidate),
     check('password', 'The password must be at least 10 characters').isLength({min:10}), 
     confirmPassword,
     check('nui', 'The NUI is required').not().isEmpty(),
     check('phone', 'The phone number is not correct').isLength({max:10}),
-    isRoleValidate,
+    check('role').custom(isRoleValidate), 
     validateFiels
 ],usersPost);
 router.delete('/:id', [
-    //validateJWT,
-    //adminRole,
-    //haveRole('ADMIN_ROLE', 'USER_ROLE'),
+    validateJWT,
+    adminRole,
+    //haveRole(1,2),
     check('id', 'It is not a valid ID').isNumeric().notEmpty(),
-    exitIdForUser,
+    check('id').custom(exitIdForUser),
     validateFiels
 ],usersDelete);
 
